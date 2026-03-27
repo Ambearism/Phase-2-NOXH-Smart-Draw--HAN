@@ -78,6 +78,7 @@ export interface Participant {
   // Biểu mẫu 02 Data (Phụ lục 02 - BXD)
   form02Data?: {
     registrationRight: 'mua' | 'thue' | 'thue_mua' | '';
+    ownerName?: string;
     dob?: string;
     currentAddress: string;
     contactPhone: string;

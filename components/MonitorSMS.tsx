@@ -15,7 +15,7 @@ import { Participant } from '../types';
 
 const SMS_TEMPLATES = [
   { id: 'SMS_00_NOTICE_DRAW_TIME', purpose: 'Thông báo ngày giờ bốc thăm', trigger: 'Gửi trước ngày diễn ra sự kiện theo lịch cấu hình', content: '[CT3KimChung] Thong bao: Buoi boc tham se dien ra luc 09:00 ngay 25/03/2026. Quy khach vui long dang nhap dung gio de tham gia.' },
-  { id: 'SMS_01_OTP_LOGIN_FIRST', purpose: 'Gửi mã OTP đăng nhập lần đầu', trigger: 'Khi user nhập đúng mã hồ sơ + SĐT', content: '[CT3KimChung] Ma OTP dang nhap cua Quy khach la 483921. Vui long khong cung cap ma nay cho nguoi khac.' },
+  { id: 'SMS_01_OTP_LOGIN_FIRST', purpose: 'Gửi mã OTP đăng nhập lần đầu', trigger: 'Khi user nhập đúng mã hồ sơ + SĐT', content: '[CT3KimChung] Ma OTP dang nhap cua Quy khach la 1234. Vui long khong cung cap ma nay cho nguoi khac.' },
   { id: 'SMS_02_REMIND_LOGIN_DRAW', purpose: 'Nhắc người dùng đăng nhập', trigger: 'Gửi trước hoặc trong thời gian mở cổng', content: '[CT3KimChung] Nhac Quy khach dang nhap dung khung gio mo cong de tham gia boc tham.' },
   { id: 'SMS_03A_RESULT_WIN', purpose: 'Thông báo kết quả trúng', trigger: 'Sau khi có kết quả trúng', content: '[CT3KimChung] Ket qua boc tham: Quy khach DA TRUNG. Vui long dang nhap de xem chi tiet.' },
   { id: 'SMS_03B_RESULT_LOSE', purpose: 'Thông báo kết quả không trúng', trigger: 'Sau khi có kết quả trượt', content: '[CT3KimChung] Ket qua boc tham: Quy khach KHONG TRUNG trong dot nay.' },

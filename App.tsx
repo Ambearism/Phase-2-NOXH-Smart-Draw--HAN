@@ -9,6 +9,7 @@ import {
     Unlock,
     Upload,
     Smartphone,
+    MonitorSmartphone,
     LayoutDashboard,
     RefreshCcw,
     Fingerprint,
@@ -28,6 +29,7 @@ import {
     Download,
     History,
     FileSpreadsheet,
+    Monitor,
     Layers,
     List,
     Clock,
@@ -115,6 +117,13 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         return params.get('role') === 'user' ? 'user' : 'admin';
     });
+    const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
+
+    const toggleViewMode = () => {
+        const newMode = viewMode === 'mobile' ? 'desktop' : 'mobile';
+        setViewMode(newMode);
+        localStorage.setItem('vgc_view_mode', newMode);
+    };
 
     // --- STATE SYNCHRONIZATION (CROSS-TAB SUPPORT) ---
     // We initialize state from localStorage if available to support multiple tabs (Admin in one, User in another)
@@ -872,26 +881,39 @@ export default function App() {
 
         // DEMO BYPASS: CCCD 0123456789 with password 123456
         if (cleanCccd === '0123456789' && newPassword === '123456') {
-            const demoMatch = participants.find(p => p.cccd === '0123456789');
-            if (demoMatch) {
-                setCurrentUser(demoMatch);
-                setUserError("");
-                
-                const updated = participants.map(p =>
-                    p.id === demoMatch.id ? { ...p, checkInStatus: true, checkInTime: new Date().toLocaleTimeString() } : p
-                );
-                updateParticipants(updated);
-                
-                safeSave('vgc_session_id', demoMatch.id);
-                safeSave('vgc_project_id', currentProjectId);
-                
-                setLoginStep('credentials');
-                setInputCccd("");
-                setNewPassword("");
-                setMobileStep(10);
-                addLog(`DEMO LOGIN: ${demoMatch.id} (Nguyễn Văn A) đăng nhập bằng tài khoản giả lập.`);
-                return;
+            let demoMatch = participants.find(p => p.cccd === '0123456789');
+            if (!demoMatch) {
+                // If the user doesn't exist, use the first participant as a template for the bypass session
+                const baseUser = participants[0] || {} as Participant;
+                demoMatch = { 
+                    ...baseUser, 
+                    id: 'KC0000', 
+                    cccd: '0123456789', 
+                    name: 'Nguyễn Văn A (Demo)', 
+                    password: '123456', 
+                    passwordSet: true,
+                    phone: '0912345678',
+                    profileStatus: 'chua_hoan_thanh'
+                };
             }
+            
+            setCurrentUser(demoMatch);
+            setUserError("");
+            
+            const updated = participants.map(p =>
+                p.id === demoMatch.id ? { ...p, checkInStatus: true, checkInTime: new Date().toLocaleTimeString() } : p
+            );
+            updateParticipants(updated);
+            
+            safeSave('vgc_session_id', demoMatch.id);
+            safeSave('vgc_project_id', currentProjectId);
+            
+            setLoginStep('credentials');
+            setInputCccd("");
+            setNewPassword("");
+            setMobileStep(10);
+            addLog(`DEMO BYPASS LOGIN: ${demoMatch.id} đăng nhập trực tiếp.`);
+            return;
         }
 
         const match = participants.find(p => p.cccd === cleanCccd);
@@ -1526,7 +1548,16 @@ export default function App() {
     return (
         <div className="min-h-screen bg-slate-100 flex flex-col font-sans select-none">
 
-            <div className="fixed bottom-6 right-6 z-[100]">
+            <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 items-end">
+                {currentView === 'user' && (
+                    <button
+                        onClick={() => setViewMode(viewMode === 'mobile' ? 'desktop' : 'mobile')}
+                        className="bg-white text-[#00468E] px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 font-bold hover:scale-105 active:scale-95 transition-all border-4 border-[#00468E]"
+                    >
+                        {viewMode === 'mobile' ? <Monitor size={20} /> : <Smartphone size={20} />}
+                        {viewMode === 'mobile' ? 'Desktop view' : 'Mobile view'}
+                    </button>
+                )}
                 <button
                     onClick={() => setCurrentView(currentView === 'admin' ? 'user' : 'admin')}
                     className="bg-[#00468E] text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 font-bold hover:scale-105 active:scale-95 transition-all border-4 border-white"
@@ -3220,144 +3251,321 @@ export default function App() {
                         </div>
                 )
             ) : (
-                <div className="min-h-screen relative bg-[#F8FAFC] flex flex-col items-center justify-center p-0 md:p-6 overflow-hidden">
-                    {/* Smartphone Mock Wrapper for User Portal */}
-                    <div className="w-full h-[100dvh] md:h-[850px] md:max-w-[380px] md:rounded-[2.5rem] bg-white shadow-2xl md:shadow-blue-900/10 overflow-hidden relative flex flex-col md:border-[8px] md:border-slate-800">
-                        {/* Status bar mock (desktop only) */}
-                        <div className="hidden md:flex h-6 bg-white w-full items-center justify-center shrink-0">
-                            <div className="w-16 h-4 bg-slate-800 rounded-b-xl"></div>
-                        </div>
+                <div className={`min-h-screen relative bg-[#F8FAFC] flex flex-col items-center justify-center overflow-hidden ${viewMode === 'desktop' ? 'p-0 w-full' : 'p-0 md:p-6'}`}>
+                    {/* Smartphone Mock Wrapper or Desktop Wrapper */}
+                    <div className={`${viewMode === 'desktop'
+                        ? 'w-full h-screen'
+                        : 'w-full h-[100dvh] md:h-[850px] md:max-w-[380px] md:rounded-[2.5rem] md:border-[8px] md:border-slate-800 md:shadow-2xl md:shadow-blue-900/10'} 
+                        bg-white overflow-hidden relative flex flex-col transition-all duration-500`}>
+                        
+                        {/* Status bar mock (mobile view only) */}
+                        {viewMode === 'mobile' && (
+                            <div className="hidden md:flex h-6 bg-white w-full items-center justify-center shrink-0">
+                                <div className="w-16 h-4 bg-slate-800 rounded-b-xl"></div>
+                            </div>
+                        )}
                         
                         {/* Scrollable Content Area */}
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden relative bg-white custom-scrollbar">
+                        <div className={`flex-1 overflow-y-auto overflow-x-hidden relative bg-white custom-scrollbar ${viewMode === 'desktop' ? 'p-0' : ''}`}>
                             {/* NOTE: Login Screen */}
                             {!currentUser && (
-                                <div className="flex-1 flex flex-col items-center justify-center p-6 relative bg-white min-h-full">
-                                    <div className="w-full relative z-10 flex flex-col">
-                                        {/* Logo Area */}
-                                        <div className="flex flex-col items-center mb-8 shrink-0 mt-8">
-                                            <div className="w-20 h-20 bg-[#00468E] rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-blue-900/20 transition-transform">
-                                                <Home size={40} className="text-white relative top-[-2px]" />
-                                            </div>
-                                            <h1 className="text-3xl font-black text-[#00468E] tracking-tighter uppercase text-center leading-none">Dự Án NOXH<br />HANDICO</h1>
-                                        </div>
-
-                                        {/* Dynamic Forms */}
-                                        <div className="flex-1 flex flex-col justify-center pb-8">
-
-                                    {loginStep === 'credentials' && (
-                                        <div className="space-y-4 animate-fade-in">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số CCCD</label>
-                                                <div className="relative">
-                                                    <input
-                                                        className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-bold text-[#00468E] outline-none placeholder:text-slate-300 focus:border-[#00468E] transition-all"
-                                                        placeholder="Nhập số CCCD"
-                                                        type="text"
-                                                        value={inputCccd}
-                                                        onChange={(e) => { setInputCccd(e.target.value); setUserError(""); }}
+                                <div className={`flex-1 flex relative bg-white min-h-full ${viewMode === 'desktop' ? '' : 'flex-col items-center justify-center p-6'}`}>
+                                    {viewMode === 'desktop' ? (
+                                        <>
+                                            {/* LEFT SIDE: Hero Section */}
+                                            <div className="w-1/2 bg-[#00468E] relative overflow-hidden flex flex-col items-center justify-center p-20 text-white">
+                                                <div className="absolute inset-0 opacity-20">
+                                                    <img 
+                                                        src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80" 
+                                                        className="w-full h-full object-cover grayscale" 
+                                                        alt="Background"
                                                     />
-                                                    <User className="absolute left-4 top-4 text-slate-300" size={20} />
+                                                    <div className="absolute inset-0 bg-blue-900/60 mix-blend-multiply"></div>
+                                                </div>
+                                                
+                                                <div className="relative z-10 text-center animate-fade-in-up">
+                                                    <div className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto mb-10 border border-white/20 shadow-2xl">
+                                                        <Home size={64} className="text-white" />
+                                                    </div>
+                                                    <h1 className="text-6xl font-black tracking-tighter uppercase leading-none mb-6">Dự Án NOXH<br />HANDICO 5</h1>
+                                                    <div className="h-1 w-24 bg-blue-400 mx-auto mb-8 rounded-full"></div>
+                                                    <p className="text-xl font-medium text-blue-100 max-w-md mx-auto leading-relaxed">
+                                                        Hệ thống đăng ký và bốc thăm căn hộ trực tuyến. Minh bạch - Công bằng - Hiệu quả.
+                                                    </p>
+                                                </div>
+
+                                                <div className="absolute bottom-12 left-12 right-12 flex justify-between items-center text-blue-200/60 text-xs font-bold uppercase tracking-widest">
+                                                    <span>© 2026 Handico Group</span>
+                                                    <span>v2.4.0-desktop</span>
                                                 </div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mật khẩu</label>
-                                                <div className="relative">
-                                                    <input
-                                                        className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-bold text-slate-700 outline-none placeholder:text-slate-300 focus:border-[#00468E] transition-all"
-                                                        placeholder="••••••••"
-                                                        type="password"
-                                                        value={newPassword}
-                                                        onChange={(e) => { setNewPassword(e.target.value); setUserError(""); }}
-                                                    />
-                                                    <Key className="absolute left-4 top-4 text-slate-300" size={20} />
+
+                                            {/* RIGHT SIDE: Login Form */}
+                                            <div className="w-1/2 bg-slate-50 flex items-center justify-center p-12">
+                                                <div className="w-full max-w-md animate-fade-in">
+                                                    <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl border border-slate-100">
+                                                        <div className="mb-10">
+                                                            <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">Đăng nhập</h2>
+                                                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">Vui lòng nhập thông tin định danh</p>
+                                                        </div>
+
+                                                        {loginStep === 'credentials' && (
+                                                            <div className="space-y-6">
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số CCCD</label>
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-lg font-bold text-[#00468E] outline-none placeholder:text-slate-300 focus:border-[#00468E] focus:bg-white transition-all"
+                                                                            placeholder="Nhập số CCCD"
+                                                                            type="text"
+                                                                            value={inputCccd}
+                                                                            onChange={(e) => { setInputCccd(e.target.value); setUserError(""); }}
+                                                                        />
+                                                                        <User className="absolute left-4 top-4 text-slate-300" size={20} />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mật khẩu</label>
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl text-lg font-bold text-slate-700 outline-none placeholder:text-slate-300 focus:border-[#00468E] focus:bg-white transition-all"
+                                                                            placeholder="••••••••"
+                                                                            type="password"
+                                                                            value={newPassword}
+                                                                            onChange={(e) => { setNewPassword(e.target.value); setUserError(""); }}
+                                                                        />
+                                                                        <Key className="absolute left-4 top-4 text-slate-300" size={20} />
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={handleUserLogin}
+                                                                    className="w-full py-5 bg-[#00468E] text-white rounded-2xl font-black uppercase shadow-xl shadow-blue-200 active:scale-95 transition-all mt-6"
+                                                                >
+                                                                    ĐĂNG NHẬP HỆ THỐNG
+                                                                </button>
+                                                                
+                                                                <div className="pt-6 border-t border-slate-100 space-y-4">
+                                                                    <button
+                                                                        onClick={() => setLoginStep('register_cccd')}
+                                                                        className="w-full text-center text-xs font-black text-[#00468E] uppercase tracking-widest hover:text-blue-700 transition-colors"
+                                                                    >
+                                                                        Tạo tài khoản mới
+                                                                    </button>
+                                                                    <button className="w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quên mật khẩu?</button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {loginStep === 'register_cccd' && (
+                                                            <RegistrationStepper 
+                                                                onComplete={handleRegisterComplete}
+                                                                onCancel={() => setLoginStep('credentials')}
+                                                                isDesktop={true}
+                                                            />
+                                                        )}
+
+                                                        {userError && <p className="text-red-500 text-center text-xs font-bold animate-shake mt-4">{userError}</p>}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={handleUserLogin}
-                                                className="w-full py-5 bg-[#00468E] text-white rounded-[2rem] font-black uppercase shadow-xl shadow-blue-200 active:scale-95 transition-all mt-4"
-                                            >
-                                                ĐĂNG NHẬP
-                                            </button>
-                                            
-                                            <div className="pt-4 space-y-3">
-                                                <button
-                                                    onClick={() => {
-                                                        setLoginStep('register_cccd');
-                                                        setUserError("");
-                                                    }}
-                                                    className="w-full text-center text-[11px] font-black text-[#00468E] uppercase tracking-widest underline decoration-blue-200 underline-offset-4 hover:text-blue-700 transition-colors"
-                                                >
-                                                    ĐĂNG KÝ TÀI KHOẢN MỚI
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        alert("Vui lòng liên hệ ban quản lý bằng CCCD để lấy lại mật khẩu.");
-                                                    }}
-                                                    className="w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-[#00468E] transition-colors"
-                                                >
-                                                    Quên mật khẩu?
-                                                </button>
+                                        </>
+                                    ) : (
+                                        <div className="w-full relative z-10 flex flex-col">
+                                            {/* Mobile/Compact Layout (unchanged or lightly tuned) */}
+                                            <div className="flex flex-col items-center mb-8 shrink-0 mt-8">
+                                                <div className="w-20 h-20 bg-[#00468E] rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-blue-900/20 transition-transform">
+                                                    <Home size={40} className="text-white relative top-[-2px]" />
+                                                </div>
+                                                <h1 className="text-3xl font-black text-[#00468E] tracking-tighter uppercase text-center leading-none">Dự Án NOXH<br />HANDICO</h1>
+                                            </div>
+
+                                            <div className="flex-1 flex flex-col justify-center pb-8 p-6">
+                                                {loginStep === 'credentials' && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Số CCCD</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-bold text-[#00468E] outline-none placeholder:text-slate-300 focus:border-[#00468E] transition-all"
+                                                                    placeholder="Nhập số CCCD"
+                                                                    type="text"
+                                                                    value={inputCccd}
+                                                                    onChange={(e) => { setInputCccd(e.target.value); setUserError(""); }}
+                                                                />
+                                                                <User className="absolute left-4 top-4 text-slate-300" size={20} />
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mật khẩu</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-lg font-bold text-slate-700 outline-none placeholder:text-slate-300 focus:border-[#00468E] transition-all"
+                                                                    placeholder="••••••••"
+                                                                    type="password"
+                                                                    value={newPassword}
+                                                                    onChange={(e) => { setNewPassword(e.target.value); setUserError(""); }}
+                                                                />
+                                                                <Key className="absolute left-4 top-4 text-slate-300" size={20} />
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleUserLogin}
+                                                            className="w-full py-5 bg-[#00468E] text-white rounded-[2rem] font-black uppercase shadow-xl shadow-blue-200 active:scale-95 transition-all mt-4"
+                                                        >
+                                                            ĐĂNG NHẬP
+                                                        </button>
+                                                        
+                                                        <div className="pt-4 space-y-3">
+                                                            <button
+                                                                onClick={() => setLoginStep('register_cccd')}
+                                                                className="w-full text-center text-[11px] font-black text-[#00468E] uppercase tracking-widest underline decoration-blue-200 underline-offset-4 hover:text-blue-700 transition-colors"
+                                                            >
+                                                                ĐĂNG KÝ TÀI KHOẢN MỚI
+                                                            </button>
+                                                            <button className="w-full text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quên mật khẩu?</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {loginStep === 'register_cccd' && (
+                                                    <RegistrationStepper 
+                                                        onComplete={handleRegisterComplete}
+                                                        onCancel={() => setLoginStep('credentials')}
+                                                    />
+                                                )}
+
+                                                {userError && <p className="text-red-500 text-center text-xs font-bold animate-shake mt-4">{userError}</p>}
                                             </div>
                                         </div>
                                     )}
-
-                                    {loginStep === 'register_cccd' && (
-                                        <RegistrationStepper 
-                                            onComplete={handleRegisterComplete}
-                                            onCancel={() => setLoginStep('credentials')}
-                                        />
-                                    )}
-
-                                    {userError && <p className="text-red-500 text-center text-xs font-bold animate-shake">{userError}</p>}
-                                </div>
-                                    </div>
                                 </div>
                             )}
 
                             {/* STEP 10: PORTAL DASHBOARD (Main Menu) */}
                             {mobileStep === 10 && currentUser && (
-                                <>
-                                    {userActiveTab === 'home' ? (
-                                        <UserDashboard 
-                                            currentUser={currentUser}
-                                            sessionStatus={sessionStatus}
-                                            lobbyCountdown={lobbyCountdown}
-                                            formatTime={formatTime}
-                                            onLogout={handleUserLogout}
-                                            onNavigate={setMobileStep}
-                                            onStartSubmission={() => setMobileStep(20)}
-                                            onViewApplicationStatus={() => setIsAppStatusOpen(true)}
-                                            onTriggerDemoLive={() => updateActiveProject({ sessionStatus: 'live' })}
-                                        />
-                                    ) : (
-                                        <UserProfileTab currentUser={currentUser} />
+                                <div className={`flex h-full w-full ${viewMode === 'desktop' ? 'flex-row' : 'flex-col'}`}>
+                                    {/* DESKTOP SIDEBAR */}
+                                    {viewMode === 'desktop' && (
+                                        <div className="w-64 bg-[#00468E] shrink-0 flex flex-col text-white">
+                                            <div className="p-8 border-b border-white/10">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+                                                        <Home size={20} />
+                                                    </div>
+                                                    <span className="font-black text-lg tracking-tighter">HANDICO 5</span>
+                                                </div>
+                                                <div className="text-[10px] font-bold text-blue-300/60 uppercase tracking-widest">Client Portal v2.4</div>
+                                            </div>
+
+                                            <nav className="flex-1 p-6 space-y-2">
+                                                <button 
+                                                    onClick={() => setUserActiveTab('home')}
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${userActiveTab === 'home' ? 'bg-white/10 text-white shadow-inner shadow-black/10' : 'text-blue-100/60 hover:text-white hover:bg-white/5'}`}
+                                                >
+                                                    <Home size={18} />
+                                                    <span className="text-sm font-black uppercase tracking-tight">Tổng quan</span>
+                                                </button>
+                                                <button 
+                                                    onClick={() => setUserActiveTab('profile')}
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${userActiveTab === 'profile' ? 'bg-white/10 text-white shadow-inner shadow-black/10' : 'text-blue-100/60 hover:text-white hover:bg-white/5'}`}
+                                                >
+                                                    <User size={18} />
+                                                    <span className="text-sm font-black uppercase tracking-tight">Hồ sơ của tôi</span>
+                                                </button>
+                                            </nav>
+
+                                            <div className="p-6 border-t border-white/10">
+                                                <button 
+                                                    onClick={handleUserLogout}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-100/60 hover:text-white hover:bg-red-500/20 transition-all font-black uppercase text-xs tracking-wider"
+                                                >
+                                                    <LogOut size={18} />
+                                                    Đăng xuất
+                                                </button>
+                                            </div>
+                                        </div>
                                     )}
 
-                                    {/* BOTTOM NAVIGATION FOR USER PORTAL */}
-                                    <div className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-6 pb-2 z-50">
-                                        <button 
-                                            onClick={() => setUserActiveTab('home')}
-                                            className={`flex flex-col items-center gap-1 transition-all ${userActiveTab === 'home' ? 'text-[#00468E]' : 'text-slate-400'}`}
-                                        >
-                                            <Home size={22} className={userActiveTab === 'home' ? 'fill-[#00468E]/10' : ''} />
-                                            <span className="text-[10px] font-black uppercase tracking-tighter">Trang chủ</span>
-                                        </button>
-                                        <button 
-                                            onClick={() => setUserActiveTab('profile')}
-                                            className={`flex flex-col items-center gap-1 transition-all ${userActiveTab === 'profile' ? 'text-[#00468E]' : 'text-slate-400'}`}
-                                        >
-                                            <User size={22} className={userActiveTab === 'profile' ? 'fill-[#00468E]/10' : ''} />
-                                            <span className="text-[10px] font-black uppercase tracking-tighter">Hồ sơ của tôi</span>
-                                        </button>
+                                    <div className="flex-1 flex flex-col min-w-0 bg-slate-50 relative overflow-hidden">
+                                        {viewMode === 'desktop' && (
+                                            <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0 z-30">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Portal</span>
+                                                    <ChevronRight size={12} className="text-slate-300" />
+                                                    <span className="text-[10px] font-black text-[#00468E] uppercase tracking-widest">
+                                                        {userActiveTab === 'home' ? 'Tổng quan' : 'Hồ sơ của tôi'}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                        <Clock size={14} />
+                                                        <span className="text-[11px] font-bold font-mono">27/03/2026 16:30</span>
+                                                    </div>
+                                                    <button 
+                                                        onClick={toggleViewMode}
+                                                        className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors"
+                                                    >
+                                                        <MonitorSmartphone size={14} className="text-slate-600" />
+                                                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Mobile View</span>
+                                                    </button>
+                                                    <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#00468E] font-black text-[10px]">
+                                                        {currentUser.name.charAt(0)}
+                                                    </div>
+                                                </div>
+                                            </header>
+                                        )}
+
+                                        <div className="flex-1 overflow-y-auto">
+                                            {userActiveTab === 'home' ? (
+                                                <UserDashboard 
+                                                    currentUser={currentUser}
+                                                    sessionStatus={sessionStatus}
+                                                    lobbyCountdown={lobbyCountdown}
+                                                    formatTime={formatTime}
+                                                    onLogout={handleUserLogout}
+                                                    onNavigate={setMobileStep}
+                                                    onStartSubmission={() => setMobileStep(20)}
+                                                    onViewApplicationStatus={() => setIsAppStatusOpen(true)}
+                                                    onTriggerDemoLive={() => updateActiveProject({ sessionStatus: 'live' })}
+                                                    isDesktop={viewMode === 'desktop'}
+                                                />
+                                            ) : (
+                                                <UserProfileTab 
+                                                    currentUser={currentUser} 
+                                                    isDesktop={viewMode === 'desktop'}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
-                                </>
+
+                                    {/* MOBILE BOTTOM NAVIGATION */}
+                                    {viewMode === 'mobile' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-6 pb-2 z-50">
+                                            <button 
+                                                onClick={() => setUserActiveTab('home')}
+                                                className={`flex flex-col items-center gap-1 transition-all ${userActiveTab === 'home' ? 'text-[#00468E]' : 'text-slate-400'}`}
+                                            >
+                                                <Home size={22} className={userActiveTab === 'home' ? 'fill-[#00468E]/10' : ''} />
+                                                <span className="text-[10px] font-black uppercase tracking-tighter">Trang chủ</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => setUserActiveTab('profile')}
+                                                className={`flex flex-col items-center gap-1 transition-all ${userActiveTab === 'profile' ? 'text-[#00468E]' : 'text-slate-400'}`}
+                                            >
+                                                <User size={22} className={userActiveTab === 'profile' ? 'fill-[#00468E]/10' : ''} />
+                                                <span className="text-[10px] font-black uppercase tracking-tighter">Hồ sơ của tôi</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                             
                             {/* STEP 20: SUBMISSION WIZARD */}
                             {mobileStep === 20 && currentUser && (
                                 <SubmissionWizard 
                                     currentUser={currentUser}
+                                    isDesktop={viewMode === 'desktop'}
                                     onGoBack={() => setMobileStep(10)}
                                     onSubmit={(groupK, uploadedFiles, form02Data) => {
                                         const isResubmission = currentUser.applicationState === 'tra_ho_so';
@@ -3416,6 +3624,7 @@ export default function App() {
                                     isOpen={isAppStatusOpen}
                                     onClose={() => setIsAppStatusOpen(false)}
                                     participant={currentUser}
+                                    isDesktop={viewMode === 'desktop'}
                                 />
                             )}
 

@@ -4,9 +4,10 @@ import { ChevronLeft, Camera, Upload, User, Mail, Phone, Fingerprint, ShieldChec
 interface RegistrationStepperProps {
   onComplete: (userData: any) => void;
   onCancel: () => void;
+  isDesktop?: boolean;
 }
 
-export function RegistrationStepper({ onComplete, onCancel }: RegistrationStepperProps) {
+export function RegistrationStepper({ onComplete, onCancel, isDesktop = false }: RegistrationStepperProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
@@ -50,10 +51,10 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
       }, 1000);
       setStep(2);
     } else if (step === 2) {
-      if (formData.otp === '123456' || formData.otp.length === 6) {
+      if (formData.otp === '1234' || formData.otp.length === 4) {
         setStep(3);
       } else {
-        alert('Mã OTP không chính xác. Vui lòng thử lại (Demo: 123456)');
+        alert('Mã OTP không chính xác. Vui lòng thử lại (Demo: 1234)');
       }
     } else if (step === 4) {
       setIsSimulating(true);
@@ -69,19 +70,19 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
   const prevStep = () => setStep(step - 1);
 
   const isStep1Valid = formData.name && formData.cccd && formData.phone && formData.email;
-  const isStep2Valid = formData.otp.length === 6;
+  const isStep2Valid = formData.otp.length === 4;
   const isStep3Valid = formData.cccdFront && formData.cccdBack;
   const isStep5Valid = formData.password.length >= 8;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 relative pb-10 animate-fade-in">
+    <div className={`flex-1 flex flex-col h-full bg-slate-50 relative pb-10 animate-fade-in ${isDesktop ? 'max-w-5xl mx-auto' : ''}`}>
       {/* Header */}
-      <div className="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-20">
+      <div className={`bg-white ${isDesktop ? 'px-12 py-8 rounded-t-3xl border-x border-t' : 'px-6 py-4 border-b'} border-slate-100 flex items-center justify-between sticky top-0 z-20 shadow-sm`}>
         <div className="flex items-center gap-4">
           <button onClick={onCancel} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 focus:outline-none active:scale-90 transition-transform">
             <ChevronLeft size={20} />
           </button>
-          <h3 className="font-black text-[#00468E] text-lg uppercase tracking-tight">Đăng Ký Tài Khoản</h3>
+          <h3 className={`font-black text-[#00468E] ${isDesktop ? 'text-2xl' : 'text-lg'} uppercase tracking-tight`}>Đăng Ký Tài Khoản</h3>
         </div>
         <div className="font-bold text-slate-400 text-xs text-right">
           BƯỚC {step}/5<br/>
@@ -90,25 +91,25 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
       </div>
 
       {/* Stepper Indicator */}
-      <div className="bg-white px-6 py-3 border-b border-slate-100 flex gap-2 justify-between sticky top-[65px] z-10">
+      <div className={`bg-white ${isDesktop ? 'px-12 border-x' : 'px-6'} py-3 border-b border-slate-100 flex gap-2 justify-between sticky ${isDesktop ? 'top-[97px]' : 'top-[65px]'} z-10`}>
         {[1, 2, 3, 4, 5].map(s => (
           <div key={s} className="flex-1 h-1.5 rounded-full transition-all duration-500" style={{ backgroundColor: s <= step ? '#00468E' : '#E2E8F0' }} />
         ))}
       </div>
 
-      <div className="p-6 flex-1 overflow-y-auto pb-24">
+      <div className={`${isDesktop ? 'p-12 bg-white border-x border-b rounded-b-3xl shadow-sm' : 'p-6'} flex-1 overflow-y-auto pb-24`}>
         {/* STEP 1: PERSONAL INFO */}
         {step === 1 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-50 text-[#00468E] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <User size={32} />
+            <div className="text-center mb-8">
+              <div className={`${isDesktop ? 'w-24 h-24' : 'w-16 h-16'} bg-blue-50 text-[#00468E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                <User size={isDesktop ? 48 : 32} />
               </div>
-              <h4 className="font-black text-slate-800 text-xl tracking-tight uppercase">Thông Tin Cá Nhân</h4>
-              <p className="text-xs text-slate-500 font-medium">Vui lòng nhập chính xác thông tin như trên CCCD</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-3xl' : 'text-xl'} tracking-tight uppercase`}>Thông Tin Cá Nhân</h4>
+              <p className={`${isDesktop ? 'text-sm' : 'text-xs'} text-slate-500 font-medium`}>Vui lòng nhập chính xác thông tin như trên CCCD</p>
             </div>
 
-            <div className="space-y-4">
+            <div className={`grid ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'} gap-6`}>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Họ và Tên</label>
                 <div className="relative">
@@ -180,17 +181,17 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
         {/* STEP 2: OTP VERIFICATION */}
         {step === 2 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-50 text-[#00468E] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <ShieldCheck size={32} />
+            <div className={`text-center mb-10 ${isDesktop ? 'max-w-xl mx-auto' : ''}`}>
+              <div className={`${isDesktop ? 'w-24 h-24' : 'w-16 h-16'} bg-blue-50 text-[#00468E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                <ShieldCheck size={isDesktop ? 48 : 32} />
               </div>
-              <h4 className="font-black text-slate-800 text-xl tracking-tight uppercase">Xác thực số điện thoại</h4>
-              <p className="text-xs text-slate-500 font-medium italic">Mã OTP đã được gửi đến số {formData.phone}</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-3xl' : 'text-xl'} tracking-tight uppercase`}>Xác thực số điện thoại</h4>
+              <p className={`${isDesktop ? 'text-sm' : 'text-xs'} text-slate-500 font-medium italic mt-2`}>Mã OTP đã được gửi đến số {formData.phone}</p>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block">Nhập mã OTP (6 số)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block">Nhập mã OTP (4 số)</label>
                 <input
                   name="otp"
                   value={formData.otp}
@@ -227,7 +228,7 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
             </div>
             
             <p className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest bg-slate-100 py-2 rounded-lg">
-              Demo bypass: Nhập 123456
+              Demo bypass: Nhập 1234
             </p>
           </div>
         )}
@@ -235,15 +236,15 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
         {/* STEP 3: eKYC CCCD */}
         {step === 3 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-50 text-[#00468E] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <Fingerprint size={32} />
+            <div className="text-center mb-10">
+              <div className={`${isDesktop ? 'w-24 h-24' : 'w-16 h-16'} bg-blue-50 text-[#00468E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                <Fingerprint size={isDesktop ? 48 : 32} />
               </div>
-              <h4 className="font-black text-slate-800 text-xl tracking-tight uppercase">Xác thực CCCD</h4>
-              <p className="text-xs text-slate-500 font-medium">Chụp hoặc tải lên ảnh CCCD 2 mặt</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-3xl' : 'text-xl'} tracking-tight uppercase`}>Xác thực CCCD</h4>
+              <p className={`${isDesktop ? 'text-sm' : 'text-xs'} text-slate-500 font-medium`}>Chụp hoặc tải lên ảnh CCCD 2 mặt</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className={`grid ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'} gap-8`}>
               <div className="space-y-2">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mặt trước CCCD</p>
                 <div className="relative group">
@@ -304,13 +305,13 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
 
         {/* STEP 4: FACE SCAN */}
         {step === 4 && (
-          <div className="space-y-6 animate-fade-in flex flex-col items-center">
-            <div className="text-center mb-6 w-full">
-              <div className="w-16 h-16 bg-blue-50 text-[#00468E] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <ShieldCheck size={32} />
+          <div className={`space-y-6 animate-fade-in flex flex-col items-center ${isDesktop ? 'max-w-2xl mx-auto' : ''}`}>
+            <div className="text-center mb-8 w-full">
+              <div className={`${isDesktop ? 'w-24 h-24' : 'w-16 h-16'} bg-blue-50 text-[#00468E] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm`}>
+                <ShieldCheck size={isDesktop ? 48 : 32} />
               </div>
-              <h4 className="font-black text-slate-800 text-xl tracking-tight uppercase">Xác thực khuôn mặt</h4>
-              <p className="text-xs text-slate-500 font-medium">Giữ điện thoại trước mặt và nhìn thẳng vào camera</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-3xl' : 'text-xl'} tracking-tight uppercase`}>Xác thực khuôn mặt</h4>
+              <p className={`${isDesktop ? 'text-sm' : 'text-xs'} text-slate-500 font-medium mt-2`}>Giữ điện thoại trước mặt và nhìn thẳng vào camera</p>
             </div>
 
             <div className="w-full aspect-square max-w-[280px] border-8 border-[#00468E] rounded-full relative overflow-hidden bg-slate-900 shadow-2xl flex items-center justify-center">
@@ -355,12 +356,12 @@ export function RegistrationStepper({ onComplete, onCancel }: RegistrationSteppe
         {/* STEP 5: PASSWORD SETUP */}
         {step === 5 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg border-4 border-white">
-                <CheckCircle2 size={40} />
+            <div className={`text-center mb-10 ${isDesktop ? 'max-w-xl mx-auto' : ''}`}>
+              <div className={`${isDesktop ? 'w-32 h-32' : 'w-20 h-20'} bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg border-8 border-white`}>
+                <CheckCircle2 size={isDesktop ? 64 : 40} />
               </div>
-              <h4 className="font-black text-slate-800 text-2xl tracking-tight uppercase">XÁC THỰC THÀNH CÔNG</h4>
-              <p className="text-xs text-green-600 font-bold uppercase mt-1">Đã kiểm tra danh tính điện tử</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-4xl' : 'text-2xl'} tracking-tight uppercase`}>XÁC THỰC THÀNH CÔNG</h4>
+              <p className={`${isDesktop ? 'text-base' : 'text-xs'} text-green-600 font-bold uppercase mt-2`}>Đã kiểm tra danh tính điện tử</p>
             </div>
 
             <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 space-y-6">

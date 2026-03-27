@@ -12,6 +12,7 @@ interface UserDashboardProps {
   onStartSubmission: () => void;
   onViewApplicationStatus: () => void;
   onTriggerDemoLive: () => void; // for the demo button
+  isDesktop?: boolean;
 }
 
 export function UserDashboard({ 
@@ -23,7 +24,8 @@ export function UserDashboard({
   onNavigate,
   onStartSubmission,
   onViewApplicationStatus,
-  onTriggerDemoLive
+  onTriggerDemoLive,
+  isDesktop = false
 }: UserDashboardProps) {
   // Mode A: Not completed
   // Mode B: Completed
@@ -50,92 +52,109 @@ export function UserDashboard({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full animate-fade-in relative">
+    <div className={`flex-1 flex flex-col h-full animate-fade-in relative ${isDesktop ? 'px-10 py-8 bg-slate-50' : ''}`}>
       {/* Top Profile Section */}
-      <div className="bg-[#00468E] text-white p-8 pb-12 rounded-b-[2.5rem] shadow-xl relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className="bg-white/10 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/20 flex gap-2">
-            <p className="text-[10px] font-black uppercase tracking-widest">
-              {isApplicationCompleted ? "THÀNH VIÊN" : "TÀI KHOẢN MỚI"}
-            </p>
-          </div>
-          <button onClick={onLogout} className="text-[10px] font-bold text-white/60 hover:text-white uppercase">Đăng xuất</button>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-white p-1 border-2 border-white/20 overflow-hidden">
+      <div className={`${isDesktop ? 'rounded-3xl px-10 py-6 mb-8 flex items-center justify-between' : 'p-8 pb-14 rounded-b-[3.5rem] mt-[-1px] mx-[-1px]'} bg-[#00468E] text-white shadow-xl relative z-10`}>
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className={`${isDesktop ? 'w-14 h-14' : 'w-14 h-14'} rounded-full bg-white p-1 border-2 border-white/20 overflow-hidden shadow-lg shrink-0`}>
             <img src={currentUser.photo || ''} className="w-full h-full object-cover" />
           </div>
-          <div>
-            <h2 className="text-xl font-black uppercase tracking-tighter leading-none mb-1">{currentUser.name}</h2>
-            <p className="text-xs font-medium opacity-80">{currentUser.id}</p>
+          <div className="min-w-0">
+            <div className={`flex ${isDesktop ? 'items-center gap-3' : 'flex-col gap-1'} mb-0.5`}>
+              <h2 className={`${isDesktop ? 'text-xl' : 'text-lg'} font-black uppercase tracking-tighter leading-none truncate`}>
+                {currentUser.name}
+              </h2>
+              <div className="inline-flex w-fit bg-white/10 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-white/10 backdrop-blur-sm">
+                {isApplicationCompleted ? "THÀNH VIÊN" : "TÀI KHOẢN MỚI"}
+              </div>
+            </div>
+            <p className={`${isDesktop ? 'text-[10px]' : 'text-[9px]'} font-bold opacity-50 tracking-widest`}>{currentUser.id}</p>
           </div>
         </div>
+
+        {isDesktop && (
+          <div className="flex gap-6 items-center">
+              <div className="text-right border-r border-white/10 pr-6">
+                  <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest mb-0.5">Thời gian phiên</p>
+                  <p className="text-sm font-mono font-bold tracking-tighter">14:55:02</p>
+              </div>
+              <div className="bg-white/10 px-4 py-2 rounded-xl flex items-center gap-3 border border-white/10">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Hệ thống Live</span>
+              </div>
+          </div>
+        )}
       </div>
 
       {/* Modules Grid */}
-      <div className="px-6 -mt-8 relative z-20 space-y-4 pb-10 overflow-y-auto">
-        
-        <div className="grid grid-cols-2 gap-4">
-          {/* MODULE 1: PROFILE INFO */}
-          <div className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-36 relative overflow-hidden group transition-all text-left ring-2 ring-green-100`}>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 bg-green-100 text-green-600`}>
-              <UserCheck size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Trạng thái</p>
-              <p className={`text-sm font-bold text-green-600`}>ĐÃ ĐĂNG NHẬP</p>
-            </div>
+      <div className={`${isDesktop ? 'px-0 grid grid-cols-6 gap-4' : 'px-4 -mt-10 grid grid-cols-2 gap-3'} relative z-20 pb-10 overflow-y-auto`}>
+        {/* MODULE 1: PROFILE INFO */}
+        <div className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between ${isDesktop ? 'h-32' : 'h-24'} relative overflow-hidden group transition-all text-left ring-2 ring-green-50`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-green-100 text-green-600`}>
+            <UserCheck size={16} />
           </div>
-
-          {/* MODULE 2: RULES */}
-          <button onClick={() => onNavigate(11)} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-36 active:scale-95 transition-all text-left">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2">
-              <FileText size={20} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Thông tin</p>
-              <p className="text-sm font-bold text-slate-800">Thể lệ & Hướng dẫn</p>
-            </div>
-          </button>
+          <div>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Trạng thái</p>
+            <p className={`text-xs font-black text-green-600 uppercase`}>Đã đăng nhập</p>
+          </div>
         </div>
+
+        {/* MODULE 2: RULES */}
+        <button onClick={() => onNavigate(11)} className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between ${isDesktop ? 'h-32' : 'h-24'} active:scale-95 transition-all text-left`}>
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2">
+            <FileText size={16} />
+          </div>
+          <div>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Thông tin</p>
+            <p className="text-xs font-black text-slate-800 uppercase">Thể lệ dự án</p>
+          </div>
+        </button>
+
 
         {/* =========================================
             MODE A: APPLICATION SUBMISSION PHASE
             ========================================= */}
         {!isApplicationCompleted ? (
-          <>
+          <React.Fragment>
             <button 
               onClick={handleStartSubmission}
-              className="w-full p-6 rounded-[2rem] shadow-lg text-white relative overflow-hidden group active:scale-95 transition-all text-left bg-gradient-to-r from-[#00468E] to-blue-500 shadow-blue-200"
+              className={`rounded-2xl shadow-lg text-white relative overflow-hidden group active:scale-95 transition-all text-left bg-gradient-to-br from-[#00468E] to-blue-600 shadow-blue-200 ${isDesktop ? 'col-span-3 h-32 p-6' : 'col-span-2 p-6 h-40'}`}
             >
-              <div className="relative z-10 flex items-center justify-between">
+              <div className="relative z-10 flex items-center justify-between h-full">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-blue-200">GIAI ĐOẠN 1: TIẾP NHẬN</p>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight">
-                    NỘP HỒ SƠ<br/>TRỰC TUYẾN
+                  <p className="text-[9px] font-black uppercase tracking-widest mb-1 text-blue-200 opacity-80">GIAI ĐOẠN 1</p>
+                  <h3 className={`${isDesktop ? 'text-xl' : 'text-2xl'} font-black uppercase tracking-tighter leading-tight`}>
+                    Nộp hồ sơ{isDesktop ? "" : <br/>} trực tuyến
                   </h3>
-                  <p className="text-[10px] mt-2 font-bold opacity-90">Bắt buộc đối chiếu 100% hồ sơ gốc</p>
+                  {isDesktop && <p className="text-[9px] mt-2 font-bold opacity-60">Thủ tục nhanh gọn, minh bạch</p>}
                 </div>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-sm text-white border border-white/30">
-                  <FileBadge size={24} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-sm text-white border border-white/30">
+                  <FileBadge size={20} />
                 </div>
               </div>
             </button>
 
             {/* Application Tracking View */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-              <h4 className="font-black text-[#00468E] mb-3 text-sm flex items-center gap-2">
-                <FileText size={16} /> Trạng thái hồ sơ của bạn
-              </h4>
+            <div className={`bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden ${isDesktop ? 'col-span-6 mt-4' : 'col-span-2'}`}>
+              <div className="flex justify-between items-center mb-6">
+                <h4 className="font-black text-[#00468E] text-base flex items-center gap-2">
+                    <FileText size={18} /> Theo dõi hồ sơ của bạn
+                </h4>
+                {isDesktop && (
+                    <button onClick={onViewApplicationStatus} className="px-4 py-2 bg-slate-50 text-[#00468E] rounded-xl text-[10px] font-black uppercase hover:bg-slate-100 transition-colors border border-slate-100">
+                        Xem chi tiết lịch sử xử lý
+                    </button>
+                )}
+              </div>
               
               {!currentUser.applicationState || currentUser.applicationState === 'nhap' ? (
-                <div className="text-center py-4 text-slate-500 text-xs font-medium">
-                  Chưa có hồ sơ trực tuyến nào được nộp. Vui lòng bấm "Nộp hồ sơ trực tuyến".
+                <div className="text-center py-8 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  Chưa có dữ liệu hồ sơ được nộp
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {/* STATUS PROGRESSION BAR */}
-                  <div className="flex items-center gap-1 mb-4">
+                  <div className="flex items-center gap-2">
                     {[
                       { key: 'da_nhan', label: 'Đã nhận' },
                       { key: 'dang_xu_ly', label: 'Đang xử lý' },
@@ -147,65 +166,62 @@ export function UserDashboard({
                       const isActive = i <= currentIdx;
                       
                       return (
-                        <React.Fragment key={step.key}>
-                          <div className={`flex-1 h-1.5 rounded-full ${isActive ? 'bg-[#00468E]' : 'bg-slate-200'}`} />
-                        </React.Fragment>
+                        <div key={step.key} className="flex-1 flex flex-col gap-2">
+                            <div className={`h-1.5 rounded-full ${isActive ? 'bg-[#00468E]' : 'bg-slate-100'}`} />
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-[#00468E]' : 'text-slate-300'}`}>{step.label}</span>
+                        </div>
                       );
                     })}
                   </div>
-                  <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase -mt-2 mb-2 px-0.5">
-                    <span>Đã nhận</span><span>Xử lý</span><span>Bản cứng</span><span>Hoàn thành</span>
+
+                  <div className={`grid ${isDesktop ? 'grid-cols-2 gap-6' : 'grid-cols-1 gap-4'}`}>
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Trạng thái hiện tại</p>
+                        <p className="text-sm font-black text-slate-800 uppercase mt-1">
+                            {
+                            currentUser.applicationState === 'da_nhan' ? 'Đã Nhận Hồ Sơ' :
+                            currentUser.applicationState === 'dang_xu_ly' ? 'Đang Xử Lý' :
+                            currentUser.applicationState === 'tra_ho_so' ? 'Trả Hồ Sơ' :
+                            currentUser.applicationState === 'cho_ban_cung' ? 'Chờ Nộp Bản Cứng' :
+                            currentUser.applicationState === 'qua_han_ban_cung' ? 'Quá Hạn Bản Cứng' : 'Hoàn Thành'
+                            }
+                        </p>
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${['tra_ho_so', 'qua_han_ban_cung'].includes(currentUser.applicationState || '') ? 'bg-red-500 animate-pulse' : currentUser.applicationState === 'hoan_thanh' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                    </div>
+
+                    {currentUser.applicationState === 'tra_ho_so' && (
+                        <div className="bg-red-50 border border-red-100 p-4 rounded-xl text-xs text-red-700 font-medium flex items-center justify-between gap-4">
+                            <div>
+                                <p className="font-black uppercase text-[9px] tracking-widest mb-1">Cảnh báo: Hồ sơ bị trả lại</p>
+                                <p className="text-[10px]"><strong>Lý do:</strong> {currentUser.returnReason}</p>
+                            </div>
+                            <button onClick={handleStartSubmission} className="shrink-0 px-4 py-2 bg-red-600 text-white rounded-lg font-black uppercase text-[9px] hover:bg-red-700 transition-all">
+                                Bổ sung ngay
+                            </button>
+                        </div>
+                    )}
+
+                    {['cho_ban_cung', 'qua_han_ban_cung'].includes(currentUser.applicationState || '') && (
+                        <div className={`p-4 rounded-xl text-xs font-medium border flex items-center justify-between ${currentUser.applicationState === 'qua_han_ban_cung' ? 'bg-red-50 border-red-100 text-red-700' : 'bg-orange-50 border-orange-100 text-orange-700'}`}>
+                            <div>
+                                <p className="font-black uppercase text-[9px] tracking-widest mb-1">Lịch hẹn nộp bản cứng</p>
+                                <p className="text-sm font-black tracking-tight">{new Date(currentUser.hardCopyDueDate || '').toLocaleDateString('vi-VN')}</p>
+                            </div>
+                            {currentUser.hardCopyDueDate && (() => {
+                                const daysLeft = Math.ceil((new Date(currentUser.hardCopyDueDate).getTime() - Date.now()) / 86400000);
+                                return <div className={`shrink-0 px-3 py-1 rounded-full text-[9px] font-black uppercase ${daysLeft <= 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-orange-100 text-orange-700'}`}>
+                                    {daysLeft > 0 ? `Còn ${daysLeft} ngày` : 'Quá hạn'}
+                                </div>;
+                            })()}
+                        </div>
+                    )}
                   </div>
-
-                  <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    <div>
-                      <p className="text-[10px] font-black uppercase text-slate-400">Trạng thái hiện tại</p>
-                      <p className="text-sm font-bold text-slate-800 uppercase mt-0.5">
-                        {
-                          currentUser.applicationState === 'da_nhan' ? 'Đã Nhận Hồ Sơ' :
-                          currentUser.applicationState === 'dang_xu_ly' ? 'Đang Xử Lý' :
-                          currentUser.applicationState === 'tra_ho_so' ? 'Trả Hồ Sơ' :
-                          currentUser.applicationState === 'cho_ban_cung' ? 'Chờ Nộp Bản Cứng' :
-                          currentUser.applicationState === 'qua_han_ban_cung' ? 'Quá Hạn Bản Cứng' : 'Hoàn Thành'
-                        }
-                      </p>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${['tra_ho_so', 'qua_han_ban_cung'].includes(currentUser.applicationState || '') ? 'bg-red-500 animate-pulse' : currentUser.applicationState === 'hoan_thanh' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                  </div>
-
-                  {currentUser.applicationState === 'tra_ho_so' && (
-                    <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-xs text-red-700 font-medium space-y-2">
-                      <p className="font-black uppercase text-[10px]">Hồ sơ bị trả lại</p>
-                      <p><strong>Lý do kiểm soát viên:</strong> {currentUser.returnReason}</p>
-                      <button onClick={handleStartSubmission} className="w-full py-2.5 bg-red-600 text-white rounded-lg font-bold uppercase text-[10px] hover:bg-red-700 transition-all mt-1">
-                        Bổ sung / Nộp lại hồ sơ
-                      </button>
-                    </div>
-                  )}
-
-                  {['cho_ban_cung', 'qua_han_ban_cung'].includes(currentUser.applicationState || '') && (
-                    <div className={`p-4 rounded-lg text-xs font-medium border ${currentUser.applicationState === 'qua_han_ban_cung' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>
-                      <div className="flex justify-between items-center">
-                        <strong>Hạn nộp bản cứng:</strong>
-                        <span className="font-black">{new Date(currentUser.hardCopyDueDate || '').toLocaleDateString('vi-VN')}</span>
-                      </div>
-                      {currentUser.hardCopyDueDate && (() => {
-                        const daysLeft = Math.ceil((new Date(currentUser.hardCopyDueDate).getTime() - Date.now()) / 86400000);
-                        return <p className={`mt-1 font-bold ${daysLeft <= 0 ? 'text-red-700 animate-pulse' : ''}`}>
-                          {daysLeft > 0 ? `Còn ${daysLeft} ngày để nộp bản cứng` : 'ĐÃ QUÁ HẠN NỘP BẢN CỨNG!'}
-                        </p>;
-                      })()}
-                      <p className="mt-1 text-[10px] opacity-80">Vui lòng nộp trực tiếp tại ban quản lý dự án trước thời hạn.</p>
-                    </div>
-                  )}
-                  
-                  <button onClick={onViewApplicationStatus} className="w-full py-2 bg-slate-100 text-[#00468E] rounded-lg text-xs font-bold uppercase hover:bg-slate-200 transition-colors">
-                    Chi tiết xử lý <ChevronRight size={14} className="inline" />
-                  </button>
                 </div>
               )}
             </div>
-          </>
+          </React.Fragment>
         ) : (
           /* =========================================
              MODE B: LOTTERY WAITING PHASE

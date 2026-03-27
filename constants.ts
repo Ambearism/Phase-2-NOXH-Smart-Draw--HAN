@@ -382,14 +382,6 @@ const sinhHoSoChinhXac = (tieuTo: string): Participant[] => {
     let phoneVal = `09${Math.floor(10000000 + Math.random() * 90000000)}`;
     let emailVal = `${removeAccents(t).toLowerCase()}${removeAccents(td).toLowerCase()}${Math.floor(Math.random()*100)}@${emailDomains[Math.floor(Math.random() * emailDomains.length)]}`.replace(/\s+/g, '');
 
-    // First profile special values
-    if (pi === 0) {
-      cccdVal = '0123456789';
-      phoneVal = '09123456789';
-      emailVal = 'nguyen.vana@gmail.com';
-      appState = 'tra_ho_so';
-    }
-
     const actionLogEntries: Array<{time: string; actor: string; action: string; comment?: string}> = [
       { time: submitTime, actor: 'Hệ thống', action: 'Tiếp nhận hồ sơ trực tuyến' }
     ];
@@ -404,7 +396,7 @@ const sinhHoSoChinhXac = (tieuTo: string): Participant[] => {
     const utOptions: Array<'ut1' | 'ut2' | 'ut3' | 'ut4' | 'ut5' | 'thuong'> = ['ut1', 'ut2', 'ut3', 'ut4', 'ut5', 'thuong'];
 
     const dobVal = `${Math.floor(Math.random() * 28) + 1}/${Math.floor(Math.random() * 12) + 1}/${Math.floor(Math.random() * 20) + 1970}`;
-    // Generate Form 02 Data for all Phase 2 mock entries
+    
     const form02Data: Participant['form02Data'] = {
       registrationRight: (['mua', 'thue', 'thue_mua'] as const)[Math.floor(Math.random() * 3)],
       dob: dobVal,
@@ -442,6 +434,22 @@ const sinhHoSoChinhXac = (tieuTo: string): Participant[] => {
         cccd12: `0340${Math.floor(80 + Math.random() * 20)}0${Math.floor(100000 + Math.random() * 900000)}`
       }))
     };
+
+    // First profile special values
+    if (pi === 0) {
+      cccdVal = '123456789012';
+      phoneVal = '09123456789';
+      emailVal = 'nguyen.vana@gmail.com';
+      appState = 'tra_ho_so';
+      
+      // Additional Form 02 fields for verification
+      form02Data.ownerName = 'NGUYỄN VĂN A';
+      form02Data.dob = '01/01/1990';
+      form02Data.idNumber09 = '123456789';
+      form02Data.militaryIdNumber = 'MS-555888';
+      form02Data.temporaryAddress = 'Số 10, Ngõ 55, Xuân Thủy, Cầu Giấy, Hà Nội';
+      form02Data.idNumber12 = cccdVal;
+    }
 
     dsHoSo.push({
       id,

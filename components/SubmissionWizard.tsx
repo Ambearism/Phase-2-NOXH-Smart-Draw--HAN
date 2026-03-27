@@ -7,9 +7,10 @@ interface SubmissionWizardProps {
   currentUser: Participant;
   onGoBack: () => void;
   onSubmit: (groupK: string, files: any[], form02Data: any) => void;
+  isDesktop?: boolean;
 }
 
-export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: SubmissionWizardProps) {
+export function SubmissionWizard({ currentUser, onGoBack, onSubmit, isDesktop = false }: SubmissionWizardProps) {
   const [step, setStep] = useState(currentUser.applicationState === 'tra_ho_so' ? 2 : 1);
   const [selectedGroup, setSelectedGroup] = useState<string>(currentUser.groupK || '');
   const [files, setFiles] = useState<Record<string, File[]>>({}); // Changed to Array for multi-upload
@@ -145,14 +146,14 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full animate-fade-in bg-slate-50 relative pb-10">
+    <div className={`flex-1 flex flex-col h-full animate-fade-in bg-slate-50 relative pb-10 ${isDesktop ? 'max-w-7xl mx-auto' : ''}`}>
       {/* Header */}
-      <div className="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+      <div className={`bg-white ${isDesktop ? 'px-12 py-8 rounded-t-3xl border-x border-t' : 'px-6 py-4 border-b'} border-slate-100 flex items-center justify-between sticky top-0 z-20 shadow-sm`}>
         <div className="flex items-center gap-4">
           <button onClick={onGoBack} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
             <ChevronLeft size={20} />
           </button>
-          <h3 className="font-black text-[#00468E] text-lg uppercase tracking-tight">Nộp Hồ Sơ</h3>
+          <h3 className={`font-black text-[#00468E] ${isDesktop ? 'text-2xl' : 'text-lg'} uppercase tracking-tight`}>Nộp Hồ Sơ</h3>
         </div>
         <div className="font-bold text-slate-400 text-xs text-right">
           BƯỚC {step}/6<br/>
@@ -160,133 +161,141 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
         </div>
       </div>
 
-      {/* Stepper Indicator */}
-      <div className="bg-white px-6 py-3 border-b border-slate-100 flex gap-1 justify-between sticky top-[65px] z-10">
-        {[1, 2, 3, 4, 5, 6].map(s => (
-          <div key={s} className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: s <= step ? '#00468E' : '#E2E8F0' }} />
-        ))}
-      </div>
+      {/* Horizontal Progress Bar (Desktop) */}
+      {isDesktop ? (
+        <div className="bg-white px-12 py-6 border-b border-slate-100 flex items-center justify-between sticky top-[97px] z-10 shadow-sm">
+          {[
+            { id: 1, label: 'Biểu mẫu 02' },
+            { id: 2, label: 'Nhóm đối tượng' },
+            { id: 3, label: 'Đính kèm hồ sơ' },
+            { id: 4, label: 'Cam kết hồ sơ' },
+            { id: 5, label: 'Xác thực OTP' },
+            { id: 6, label: 'Hoàn tất' }
+          ].map((s, idx) => (
+            <React.Fragment key={s.id}>
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${s.id <= step ? 'bg-[#00468E] text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>
+                  {s.id < step ? <CheckCircle2 size={16} /> : s.id}
+                </div>
+                <div className="flex flex-col">
+                  <p className={`text-[9px] font-black uppercase tracking-widest ${s.id <= step ? 'text-[#00468E]' : 'text-slate-400'}`}>{s.label}</p>
+                </div>
+              </div>
+              {idx < 5 && <div className={`flex-1 h-[2px] mx-4 rounded-full ${s.id < step ? 'bg-[#00468E]' : 'bg-slate-100'}`} />}
+            </React.Fragment>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white px-6 py-3 border-b border-slate-100 flex gap-1 justify-between sticky top-[65px] z-10">
+          {[1, 2, 3, 4, 5, 6].map(s => (
+            <div key={s} className="flex-1 h-1.5 rounded-full" style={{ backgroundColor: s <= step ? '#00468E' : '#E2E8F0' }} />
+          ))}
+        </div>
+      )}
 
-      <div className="p-6 overflow-y-auto flex-1 pb-24">
+      <div className={`${isDesktop ? 'p-12 border-x border-b bg-white rounded-b-3xl shadow-sm' : 'p-6'} overflow-y-auto flex-1 pb-24`}>
             {/* STEP 1: BIỂU MẪU 02 */}
         {step === 1 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="bg-[#00468E] text-white p-6 -mx-6 -mt-6 mb-6">
-              <h4 className="font-black text-xl uppercase tracking-tight">Kê khai Biểu mẫu 02</h4>
-              <p className="text-xs text-blue-100 font-medium">Vui lòng điền đầy đủ thông tin đăng ký (Mục 1, 2, 5)</p>
+            <div className={`bg-[#00468E] text-white ${isDesktop ? 'p-10 rounded-3xl mb-10' : 'p-6 -mx-6 -mt-6 mb-6'}`}>
+              <h4 className={`font-black ${isDesktop ? 'text-3xl' : 'text-xl'} uppercase tracking-tight`}>Kê khai Biểu mẫu 02</h4>
+              <p className={`${isDesktop ? 'text-base' : 'text-xs'} text-blue-100 font-medium`}>Vui lòng điền đầy đủ thông tin đăng ký (Mục 1, 2, 5)</p>
             </div>
 
             <div className="space-y-6">
               {/* 0. Thông tin cá nhân cơ bản */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+              <div className={`${isDesktop ? 'p-10' : 'p-5'} bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4`}>
                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">Thông tin định danh & Liên lạc</h5>
-                <div className="grid grid-cols-1 gap-4">
+                <div className={`grid ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'} gap-x-6 gap-y-4`}>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Họ và tên chủ hồ sơ *</label>
                     <input 
-                      placeholder="Nhập họ và tên đầy đủ" 
-                      className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-black uppercase text-[#00468E]"
+                      placeholder="Nhập họ và tên" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-black uppercase text-[#00468E] focus:ring-1 focus:ring-blue-200"
                       value={form02Data.ownerName}
                       onChange={(e) => setForm02Data({ ...form02Data, ownerName: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Địa chỉ nơi ở hiện nay *</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số điện thoại *</label>
                     <input 
-                      placeholder="Nhập địa chỉ cư trú hiện tại" 
-                      className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
+                      placeholder="09xxx" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.contactPhone}
+                      onChange={(e) => setForm02Data({ ...form02Data, contactPhone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">CMND (9 số)</label>
+                    <input 
+                      placeholder="Nếu có" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.idNumber09}
+                      onChange={(e) => setForm02Data({ ...form02Data, idNumber09: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Thẻ CCCD (12 số) *</label>
+                    <input 
+                      placeholder="12 số" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.idNumber12}
+                      onChange={(e) => setForm02Data({ ...form02Data, idNumber12: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Ngày cấp *</label>
+                    <input 
+                      type="date"
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.idIssuanceDate}
+                      onChange={(e) => setForm02Data({ ...form02Data, idIssuanceDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Nơi cấp *</label>
+                    <input 
+                      placeholder="Công an tỉnh..." 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.idIssuancePlace}
+                      onChange={(e) => setForm02Data({ ...form02Data, idIssuancePlace: e.target.value })}
+                    />
+                  </div>
+                  <div className={`${isDesktop ? 'col-span-3' : ''} space-y-1`}>
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Hộ khẩu thường trú *</label>
+                    <input 
+                      placeholder="Theo sổ hộ khẩu" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.permanentAddress}
+                      onChange={(e) => setForm02Data({ ...form02Data, permanentAddress: e.target.value })}
+                    />
+                  </div>
+                  <div className={`${isDesktop ? 'col-span-3' : ''} space-y-1`}>
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Địa chỉ hiện tại *</label>
+                    <input 
+                      placeholder="Chỗ ở hiện nay" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
                       value={form02Data.currentAddress}
                       onChange={(e) => setForm02Data({ ...form02Data, currentAddress: e.target.value })}
                     />
                   </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số điện thoại liên lạc *</label>
-                      <input 
-                        placeholder="09xxx" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.contactPhone}
-                        onChange={(e) => setForm02Data({ ...form02Data, contactPhone: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Hộ khẩu thường trú *</label>
-                      <input 
-                        placeholder="Theo sổ hộ khẩu" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.permanentAddress}
-                        onChange={(e) => setForm02Data({ ...form02Data, permanentAddress: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số CMND (9 số)</label>
-                      <input 
-                        placeholder="Nếu có" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.idNumber09}
-                        onChange={(e) => setForm02Data({ ...form02Data, idNumber09: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số thẻ CCCD (12 số) *</label>
-                      <input 
-                        placeholder="Số thẻ CCCD" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.idNumber12}
-                        onChange={(e) => setForm02Data({ ...form02Data, idNumber12: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Ngày cấp *</label>
-                      <input 
-                        type="date"
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.idIssuanceDate}
-                        onChange={(e) => setForm02Data({ ...form02Data, idIssuanceDate: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Nơi cấp *</label>
-                      <input 
-                        placeholder="Công an tỉnh..." 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.idIssuancePlace}
-                        onChange={(e) => setForm02Data({ ...form02Data, idIssuancePlace: e.target.value })}
-                      />
-                    </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Tạm trú</label>
+                    <input 
+                      placeholder="Nếu có" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
+                      value={form02Data.temporaryAddress}
+                      onChange={(e) => setForm02Data({ ...form02Data, temporaryAddress: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số CMT CBCS quân đội, công an</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Số CMT CBCS</label>
                     <input 
-                      placeholder="Dành riêng cho CBCS (nếu có)" 
-                      className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
+                      placeholder="Dành cho CBCS" 
+                      className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-1 focus:ring-blue-200"
                       value={form02Data.militaryIdNumber}
                       onChange={(e) => setForm02Data({ ...form02Data, militaryIdNumber: e.target.value })}
                     />
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Hộ khẩu thường trú *</label>
-                      <input 
-                        placeholder="Theo sổ hộ khẩu" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.permanentAddress}
-                        onChange={(e) => setForm02Data({ ...form02Data, permanentAddress: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Tạm trú</label>
-                      <input 
-                        placeholder="Nếu có" 
-                        className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold"
-                        value={form02Data.temporaryAddress}
-                        onChange={(e) => setForm02Data({ ...form02Data, temporaryAddress: e.target.value })}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -396,12 +405,12 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                 </div>
                 <div className="space-y-3">
                   {form02Data.familyMembers.map((member, idx) => (
-                    <div key={member.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm relative animate-fade-in">
+                    <div key={member.id} className={`${isDesktop ? 'p-8' : 'p-4'} bg-white rounded-2xl border border-slate-100 shadow-sm relative animate-fade-in`}>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="w-6 h-6 rounded-lg bg-[#00468E] flex items-center justify-center text-[10px] font-black text-white">{idx + 1}</span>
                         <input 
                           placeholder="Họ và tên thành viên" 
-                          className="px-0 py-0 bg-transparent border-none text-xs font-black text-[#00468E] flex-1 focus:ring-0 uppercase"
+                          className={`px-0 py-0 bg-transparent border-none ${isDesktop ? 'text-sm' : 'text-xs'} font-black text-[#00468E] flex-1 focus:ring-0 uppercase`}
                           value={member.name}
                           onChange={(e) => updateFamilyMember(member.id, 'name', e.target.value)}
                         />
@@ -417,12 +426,12 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                           Xóa
                         </button>
                       </div>
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className={`grid ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'} gap-4`}>
                         <div className="space-y-1">
                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Quan hệ với người đăng ký *</label>
                            <input 
                              placeholder="VD: Vợ, con..." 
-                             className="px-3 py-2 bg-slate-50 border-none rounded-lg text-xs font-bold w-full focus:ring-1 focus:ring-blue-100"
+                             className={`px-3 py-2 bg-slate-50 border-none rounded-lg ${isDesktop ? 'text-sm' : 'text-xs'} font-bold w-full focus:ring-1 focus:ring-blue-100`}
                              value={member.relationship}
                              onChange={(e) => updateFamilyMember(member.id, 'relationship', e.target.value)}
                            />
@@ -431,7 +440,7 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Số CMTND (09 số)</label>
                            <input 
                              placeholder="Nếu có" 
-                             className="px-3 py-2 bg-slate-50 border-none rounded-lg text-xs font-bold w-full focus:ring-1 focus:ring-blue-100"
+                             className={`px-3 py-2 bg-slate-50 border-none rounded-lg ${isDesktop ? 'text-sm' : 'text-xs'} font-bold w-full focus:ring-1 focus:ring-blue-100`}
                              value={member.cccd09}
                              onChange={(e) => updateFamilyMember(member.id, 'cccd09', e.target.value)}
                            />
@@ -440,7 +449,7 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Số thẻ căn cước công dân (12 số)</label>
                            <input 
                              placeholder="Nhập 12 số CCCD" 
-                             className="px-3 py-2 bg-slate-50 border-none rounded-lg text-xs font-bold w-full focus:ring-1 focus:ring-blue-100"
+                             className={`px-3 py-2 bg-slate-50 border-none rounded-lg ${isDesktop ? 'text-sm' : 'text-xs'} font-bold w-full focus:ring-1 focus:ring-blue-100`}
                              value={member.cccd12}
                              onChange={(e) => updateFamilyMember(member.id, 'cccd12', e.target.value)}
                            />
@@ -559,25 +568,25 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
             <h4 className="font-black text-slate-800 text-lg uppercase tracking-tight">Nhóm Đối Tượng K</h4>
             <p className="text-xs text-slate-500 font-medium mb-4">Vui lòng chọn đúng nhóm đối tượng của bạn để hệ thống gợi ý danh mục hồ sơ.</p>
             
-            <div className="space-y-3">
+            <div className={`grid ${isDesktop ? 'grid-cols-3' : 'grid-cols-1'} gap-4`}>
               {GROUP_K_CONFIGS.map(group => (
                 <div 
                   key={group.id}
                   onClick={() => setSelectedGroup(group.id)}
-                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedGroup === group.id ? 'border-[#00468E] bg-blue-50/50' : 'border-slate-200 bg-white hover:border-blue-200'}`}
+                  className={`p-6 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${selectedGroup === group.id ? 'border-[#00468E] bg-blue-50/50 shadow-md ring-2 ring-[#00468E]/10' : 'border-slate-200 bg-white hover:border-blue-200'}`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 ${selectedGroup === group.id ? 'border-[#00468E] bg-[#00468E]' : 'border-slate-300'}`}>
+                  <div className="flex items-start gap-4">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${selectedGroup === group.id ? 'border-[#00468E] bg-[#00468E]' : 'border-slate-300'}`}>
                       {selectedGroup === group.id && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                     <div>
-                      <h5 className={`font-black uppercase text-sm ${selectedGroup === group.id ? 'text-[#00468E]' : 'text-slate-700'}`}>
+                      <h5 className={`font-black uppercase text-[10px] tracking-widest ${selectedGroup === group.id ? 'text-[#00468E]' : 'text-slate-400'}`}>
                         Nhóm {group.id}
                       </h5>
-                      <p className="font-bold text-slate-800 text-sm mt-1">{group.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">{group.description}</p>
+                      <p className={`font-black text-slate-800 text-sm mt-1 leading-tight`}>{group.name}</p>
                     </div>
                   </div>
+                  <p className={`text-[11px] text-slate-500 mt-4 leading-relaxed font-medium line-clamp-3`}>{group.description}</p>
                 </div>
               ))}
             </div>
@@ -622,14 +631,14 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
         {step === 3 && activeGroupConfig && (
           <div className="space-y-4 animate-fade-in">
             <h4 className="font-black text-slate-800 text-lg">Tải biểu mẫu & Đính kèm</h4>
-            <div className={`p-3 rounded-lg text-xs font-medium flex gap-2 ${currentUser.applicationState === 'tra_ho_so' ? 'bg-red-50 border border-red-100 text-red-700' : 'bg-blue-50 border border-blue-100 text-[#00468E]'}`}>
-              <AlertCircle size={16} className="shrink-0" />
+            <div className={`p-4 rounded-2xl text-xs font-medium flex gap-3 ${currentUser.applicationState === 'tra_ho_so' ? 'bg-red-50 border-2 border-red-100 text-red-700' : 'bg-blue-50 border-2 border-blue-100 text-[#00468E]'} ${isDesktop ? 'text-sm p-6' : ''}`}>
+              <AlertCircle size={isDesktop ? 24 : 16} className="shrink-0" />
               {currentUser.applicationState === 'tra_ho_so' 
                 ? 'Hồ sơ của bạn bị trả lại. Vui lòng bổ sung hoặc đính kèm lại các giấy tờ bị từ chối (màu đỏ).'
                 : `Bạn thuộc Nhóm ${activeGroupConfig.id}. Việc tải lên giấy tờ trực tuyến hiện là Tùy chọn để tối ưu thời gian chờ.`}
             </div>
 
-            <div className="space-y-4 mt-4">
+            <div className={`grid ${isDesktop ? 'grid-cols-2 gap-4' : 'grid-cols-1 space-y-4'} mt-4`}>
               {activeGroupConfig.requiredDocs.map(doc => {
                 const status = currentUser.documentStatuses?.[doc.id] || 'pending';
                 const comment = currentUser.documentComments?.[doc.id];
@@ -637,41 +646,38 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                 const isRejected = status === 'rejected';
 
                 return (
-                  <div key={doc.id} className={`bg-white p-4 rounded-xl shadow-sm border-2 transition-all ${isApproved ? 'border-green-200 opacity-80' : isRejected ? 'border-red-200 bg-red-50/30' : 'border-slate-200'}`}>
+                  <div key={doc.id} className={`bg-white p-4 rounded-xl shadow-sm border transition-all ${isApproved ? 'border-green-100 bg-green-50/10' : isRejected ? 'border-red-100 bg-red-50/20' : 'border-slate-100'}`}>
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex flex-col">
-                        <h5 className="font-bold text-sm text-slate-800 pr-2">{doc.name}</h5>
-                        {isApproved && <span className="text-[10px] font-black text-green-600 uppercase mt-1 flex items-center gap-1"><CheckCircle2 size={12}/> Đã Duyệt</span>}
-                        {isRejected && <span className="text-[10px] font-black text-red-600 uppercase mt-1 flex items-center gap-1"><AlertCircle size={12}/> Yêu Cầu Nộp Lại</span>}
+                        <h5 className="font-black text-xs text-slate-700 pr-2 uppercase tracking-tight">{doc.name}</h5>
+                        {isApproved && <span className="text-[10px] font-black text-green-600 uppercase mt-1 flex items-center gap-1"><CheckCircle2 size={12}/> Hợp lệ</span>}
+                        {isRejected && <span className="text-[10px] font-black text-red-600 uppercase mt-1 flex items-center gap-1"><AlertCircle size={12}/> Nộp lại</span>}
                       </div>
                     </div>
 
                     {isRejected && comment && (
-                      <div className="mb-3 p-2 bg-red-100/50 rounded-lg border border-red-200 text-[11px] text-red-800 font-bold italic">
-                        Lý do: {comment}
+                      <div className="mb-3 p-2 bg-red-50 rounded-lg border border-red-100 text-[10px] text-red-700 font-bold italic">
+                        {comment}
                       </div>
                     )}
                     
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {files[doc.id]?.map((f, i) => (
-                        <div key={i} className="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-100">
-                          <div className="flex items-center gap-2 truncate">
-                            <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-                            <span className="text-xs font-bold text-green-700 truncate">{f.name}</span>
-                          </div>
-                          <button onClick={() => removeFile(doc.id, i)} className="text-xs font-bold text-red-500 underline uppercase ml-2">Xóa</button>
+                        <div key={i} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-100">
+                          <span className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]">{f.name}</span>
+                          <button onClick={() => removeFile(doc.id, i)} className="text-[10px] font-black text-red-400 uppercase">Gỡ</button>
                         </div>
                       ))}
                     </div>
 
                     {!isApproved && (
                       <div className="mt-3 flex gap-2">
-                        <button className="flex-1 py-2 px-3 bg-slate-100 text-[#00468E] rounded-lg text-xs font-black uppercase hover:bg-slate-200 flex items-center justify-center gap-2">
-                          <FileText size={14} /> Tải Mẫu
+                        <button className="px-3 py-2 bg-slate-50 text-[#00468E] rounded-lg text-[9px] font-black uppercase hover:bg-slate-100 flex items-center gap-1 border border-slate-100">
+                          Mẫu
                         </button>
-                        <label className="flex-1 py-2 px-3 border-2 border-dashed border-[#00468E] text-[#00468E] rounded-lg text-xs font-black uppercase cursor-pointer hover:bg-blue-50 flex items-center justify-center gap-2">
+                        <label className="flex-1 py-2 px-3 border border-dashed border-[#00468E] text-[#00468E] rounded-lg text-[9px] font-black uppercase cursor-pointer hover:bg-blue-50 flex items-center justify-center gap-2">
                           <input type="file" multiple className="hidden" onChange={(e) => handleFileChange(doc.id, e)} />
-                          <Upload size={14} /> Tải Lên
+                          <Upload size={12} /> Tải lên {files[doc.id]?.length > 0 ? 'thêm' : ''}
                         </label>
                       </div>
                     )}
@@ -699,48 +705,55 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
 
         {/* STEP 4: REVIEW (SUMMARY) */}
         {step === 4 && (
-          <div className="space-y-4 animate-fade-in">
-            <h4 className="font-black text-slate-800 text-lg uppercase tracking-tight">Tóm tắt & Cam kết</h4>
+          <div className="space-y-6 animate-fade-in">
+            <h4 className="font-black text-slate-800 text-lg uppercase tracking-tight">Kiểm tra thông tin & Cam kết</h4>
             
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-              <div className="grid grid-cols-1 gap-4">
+            <div className={`${isDesktop ? 'p-10' : 'p-5'} bg-white rounded-3xl border border-slate-100 shadow-sm space-y-8`}>
+              <div className={`grid ${isDesktop ? 'grid-cols-4' : 'grid-cols-1'} gap-6`}>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Họ và Tên</label>
-                  <p className="text-sm font-bold text-[#00468E]">{currentUser.name}</p>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Chủ hồ sơ</label>
+                  <p className="text-sm font-black text-[#00468E] uppercase">{form02Data.ownerName}</p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Số CCCD</label>
-                  <p className="text-sm font-bold text-[#00468E]">{currentUser.cccd}</p>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Thẻ CCCD</label>
+                  <p className="text-sm font-black text-[#00468E]">{form02Data.idNumber12 || form02Data.idNumber09}</p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Điện thoại</label>
-                  <p className="text-sm font-bold text-[#00468E]">{currentUser.phone}</p>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Điện thoại</label>
+                  <p className="text-sm font-black text-[#00468E]">{form02Data.contactPhone}</p>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Nhóm đối tượng</label>
-                  <p className="text-sm font-bold text-[#00468E]">{selectedGroup}</p>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Hình thức</label>
+                  <p className="text-sm font-black text-[#00468E] uppercase">{form02Data.registrationRight}</p>
                 </div>
               </div>
-              <div className="border-t border-slate-50 pt-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Số lượng tài liệu đính kèm</label>
-                <p className="text-sm font-bold text-[#00468E]">{Object.values(files).reduce((acc, curr) => acc + (curr as any).length, 0)} tệp tin</p>
+
+              <div className={`grid ${isDesktop ? 'grid-cols-2' : 'grid-cols-1'} gap-6 pt-6 border-t border-slate-50`}>
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Nhóm đối tượng</label>
+                  <p className="text-xs font-bold text-slate-700">{selectedGroup} - {activeGroupConfig?.name}</p>
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tài liệu đính kèm</label>
+                  <p className="text-xs font-bold text-slate-700">{Object.values(files).reduce((acc, curr) => acc + (curr as any).length, 0)} tệp tin đã tải lên</p>
+                </div>
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl">
-              <h5 className="font-black text-[#00468E] uppercase mb-1 text-xs">Loại quyền đăng ký</h5>
-              <p className="text-sm font-bold text-blue-700 capitalize">{form02Data.registrationRight.replace('_', ' ')}</p>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-start gap-3">
-               <input type="checkbox" id="camket" className="mt-1 w-5 h-5 accent-[#00468E]" defaultChecked />
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 flex items-start gap-4 ring-2 ring-[#00468E]/5">
+               <input type="checkbox" id="camket" className="mt-1 w-5 h-5 accent-[#00468E] shrink-0" defaultChecked />
                <label htmlFor="camket" className="text-xs text-slate-600 font-medium leading-relaxed">
-                 Tôi cam đoan những thông tin khai báo và tài liệu đính kèm là hoàn toàn chính xác. Hệ thống Handico được lưu trữ và xử lý thông tin này.
+                 Tôi cam đoan những thông tin khai báo và tài liệu đính kèm là hoàn toàn chính xác. Tôi hoàn toàn chịu trách nhiệm trước pháp luật về tính xác thực của thông tin này.
                </label>
             </div>
 
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(3)} className="w-1/3 py-4 rounded-2xl font-black text-slate-500 bg-slate-200">Quay Lại</button>
+            <div className="flex gap-4 mt-8">
+              <button 
+                onClick={() => setStep(3)} 
+                className="w-1/3 py-4 rounded-2xl font-black text-slate-400 bg-slate-100 uppercase"
+              >
+                Quay Lại
+              </button>
               <button 
                 onClick={() => {
                   setOtpTimer(60);
@@ -755,10 +768,9 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
                   }, 1000);
                   setStep(5);
                 }} 
-                className="w-2/3 py-4 rounded-2xl font-black bg-[#00468E] text-white shadow-lg relative overflow-hidden group"
+                className="w-2/3 py-4 rounded-2xl font-black bg-[#00468E] text-white shadow-lg relative overflow-hidden group uppercase tracking-widest"
               >
                 NỘP HỒ SƠ
-                <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover:translate-y-0 transition-transform"></div>
               </button>
             </div>
           </div>
@@ -766,34 +778,35 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
 
         {/* STEP 5: OTP VERIFICATION */}
         {step === 5 && (
-          <div className="space-y-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-50 text-[#00468E] rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-                <Upload size={32} className="animate-pulse" />
+          <div className={`space-y-8 animate-fade-in ${isDesktop ? 'max-w-xl mx-auto py-16' : ''}`}>
+            <div className="text-center mb-8">
+              <div className={`${isDesktop ? 'w-20 h-20' : 'w-16 h-16'} bg-[#00468E]/5 text-[#00468E] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#00468E]/10`}>
+                <CheckCircle2 size={isDesktop ? 32 : 24} className="animate-pulse" />
               </div>
-              <h4 className="font-black text-slate-800 text-xl tracking-tight uppercase">Xác thực nộp hồ sơ</h4>
-              <p className="text-xs text-slate-500 font-medium italic text-center">Để bảo mật, vui lòng nhập mã OTP đã được gửi đến số {currentUser.phone}</p>
+              <h4 className={`font-black text-slate-800 ${isDesktop ? 'text-2xl' : 'text-xl'} tracking-tight uppercase`}>Xác thực bảo mật</h4>
+              <p className={`${isDesktop ? 'text-xs' : 'text-[10px]'} text-slate-400 font-black uppercase tracking-widest mt-2`}>Mã OTP đã được gửi đến số {currentUser.phone}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block">Mã xác thực (6 số)</label>
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-blue-50/50 space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#00468E] to-blue-400" />
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] text-center block mb-2">Nhập mã xác thực 6 chữ số</label>
                 <input
                   value={otpValue}
                   onChange={(e) => setOtpValue(e.target.value)}
                   maxLength={6}
-                  className="w-full py-4 bg-slate-50 border-none rounded-2xl text-3xl font-black text-[#00468E] text-center outline-none focus:ring-2 focus:ring-[#00468E] tracking-[0.5em]"
+                  className="w-full py-5 bg-slate-50 border-none rounded-2xl text-4xl font-black text-[#00468E] text-center outline-none focus:ring-2 focus:ring-[#00468E]/20 tracking-[0.4em] shadow-inner"
                   placeholder="000000"
                 />
               </div>
 
               <div className="text-center">
                 {otpTimer > 0 ? (
-                  <p className="text-xs font-bold text-slate-400 uppercase">Gửi lại sau <span className="text-[#00468E]">{otpTimer}s</span></p>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Gửi lại sau <span className="text-[#00468E] underline">{otpTimer} giây</span></p>
                 ) : (
                   <button 
                     onClick={() => setOtpTimer(60)}
-                    className="text-xs font-black text-[#00468E] uppercase underline"
+                    className="text-[10px] font-black text-[#00468E] uppercase tracking-widest hover:underline"
                   >
                     Gửi lại mã OTP
                   </button>
@@ -801,49 +814,49 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
               </div>
             </div>
 
-            {showErrors && otpValue.length !== 6 && (
-              <div className="bg-red-50 border-2 border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-shake">
-                <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                  <AlertCircle size={20} />
-                </div>
-                <p className="text-xs font-black text-red-700 uppercase tracking-tight">Vui lòng nhập đủ 6 chữ số mã OTP</p>
+            {showErrors && otpValue.length !== 4 && (
+              <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 animate-shake">
+                <AlertCircle size={18} className="text-red-500" />
+                <p className="text-[10px] font-black text-red-700 uppercase tracking-tight">Vui lòng nhập đủ 6 chữ số</p>
               </div>
             )}
 
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-4 mt-8">
               <button 
                 onClick={() => {
                   setStep(4);
                   setShowErrors(false);
                 }} 
-                className="w-1/3 py-4 rounded-2xl font-black text-slate-500 bg-slate-200 uppercase text-xs"
+                className="w-1/3 py-4 rounded-2xl font-black text-slate-400 bg-slate-100 uppercase text-xs"
               >
                 Quay Lại
               </button>
               <button
                 onClick={() => {
-                  if (otpValue.length === 6) {
-                    if (otpValue === '123456' || otpValue.length === 6) { // Demo: any 6 digits work for now or specifically 123456
+                  if (otpValue.length === 4) {
+                    if (otpValue === '1234' || otpValue.length === 4) {
                       setStep(6);
                       setTimeout(() => {
                         setShowSuccessPopup(true);
                       }, 2000);
                     } else {
-                      alert('Mã OTP không chính xác. Vui lòng thử lại (Demo: 123456)');
+                      alert('Mã OTP không chính xác. Vui lòng thử lại (Demo: 1234)');
                     }
                   } else {
                     setShowErrors(true);
                   }
                 }}
-                className={`w-2/3 py-4 rounded-2xl font-black uppercase shadow-xl transition-all ${otpValue.length === 6 ? 'bg-[#00468E] text-white shadow-blue-200 active:scale-95' : 'bg-slate-200 text-slate-400 shadow-none'}`}
+                className={`w-2/3 py-4 rounded-2xl font-black uppercase shadow-xl transition-all tracking-widest ${otpValue.length === 4 ? 'bg-[#00468E] text-white shadow-blue-200 active:scale-95' : 'bg-slate-200 text-slate-400 shadow-none'}`}
               >
-                Xác Nhận & Nộp
+                Xác Nhận Nộp
               </button>
             </div>
             
-            <p className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest bg-slate-100 py-2 rounded-lg">
-              Demo bypass: Nhập 123456
-            </p>
+            <div className="text-center">
+                <p className="text-[9px] text-slate-300 font-black uppercase tracking-[0.2em]">
+                  Bypass code: 1234
+                </p>
+            </div>
           </div>
         )}
 
@@ -862,15 +875,15 @@ export function SubmissionWizard({ currentUser, onGoBack, onSubmit }: Submission
 
         {/* SUCCESS POPUP OVERLAY */}
         {showSuccessPopup && (
-           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
-             <div className="bg-white rounded-3xl p-8 w-[340px] shadow-2xl text-center relative max-h-screen overflow-y-auto">
-               <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-[6px] border-white shadow-lg relative -top-12 -mb-8">
-                 <CheckCircle2 size={40} className="animate-pulse" />
-               </div>
-               <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-2">Nộp Hồ Sơ<br/>Thành Công</h3>
-               <p className="text-sm font-medium text-slate-600 mb-6 px-2">
-                 Thao tác đăng ký đã hoàn tất. Bạn có thể theo dõi tiến độ xử lý hồ sơ ngay tại Cổng Thông Tin.
-               </p>
+            <div className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in`}>
+              <div className={`bg-white rounded-3xl ${isDesktop ? 'p-16 w-[500px]' : 'p-8 w-[340px]'} shadow-2xl text-center relative max-h-screen overflow-y-auto`}>
+                <div className={`${isDesktop ? 'w-28 h-28 -top-14 -mb-10 border-[10px]' : 'w-20 h-20 -top-12 -mb-8 border-[6px]'} bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 border-white shadow-lg relative`}>
+                  <CheckCircle2 size={isDesktop ? 56 : 40} className="animate-pulse" />
+                </div>
+                <h3 className={`${isDesktop ? 'text-4xl' : 'text-2xl'} font-black text-slate-800 uppercase tracking-tighter leading-none mb-3`}>Nộp Hồ Sơ<br/>Thành Công</h3>
+                <p className={`${isDesktop ? 'text-base' : 'text-sm'} font-medium text-slate-600 mb-8 px-2`}>
+                  Thao tác đăng ký đã hoàn tất. Bạn có thể theo dõi tiến độ xử lý hồ sơ ngay tại Cổng Thông Tin.
+                </p>
                <button 
                  onClick={finishSubmission}
                  className="w-full py-4 bg-[#00468E] text-white rounded-2xl font-black uppercase tracking-wider text-sm shadow-xl shadow-blue-200 hover:bg-blue-800 transition-all active:scale-95"
